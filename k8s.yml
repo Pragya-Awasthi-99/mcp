@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-project
+  labels:
+    app: mcp-project
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: mcp-project
+
+  template:
+    metadata:
+      labels:
+        app: mcp-project
+
+    spec:
+      containers:
+      - name: mcp-project
+
+        image: mcp-project:latest
+        imagePullPolicy: IfNotPresent
+
+        ports:
+        - containerPort: 80
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: mcp-project-service
+
+spec:
+  selector:
+    app: mcp-project
+
+  ports:
+  - port: 80
+    targetPort: 80
+
+  type: LoadBalancer
